@@ -80,13 +80,20 @@ class Profile(ViewSet):
                 ]
             }
         """
-        try:
-            current_user = Customer.objects.get(user=4)
-            current_user.recommends = Recommendation.objects.filter(recommender=current_user)
 
+        # Manually construct the JSON structure you want in the response
+        try:
+            current_user = Customer.objects.get(user=request.auth.user)
+
+            current_user.recommends = Recommendation.objects.filter(
+                recommender=current_user
+            )
+
+            current_user.recommended = Recommendation.objects.filter(
+                recommender=current_user
+            )
             serializer = ProfileSerializer(
                 current_user, many=False, context={'request': request})
-
             return Response(serializer.data)
         except Exception as ex:
             return HttpResponseServerError(ex)
@@ -357,10 +364,11 @@ class RecommenderSerializer(serializers.ModelSerializer):
     """JSON serializer for recommendations"""
     customer = CustomerSerializer()
     product = ProfileProductSerializer()
+    recommender = CustomerSerializer()
 
     class Meta:
         model = Recommendation
-        fields = ('product', 'customer',)
+        fields = ('product', 'customer', 'recommender',)
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -370,12 +378,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         serializers
     """
     user = UserSerializer(many=False)
-    recommends = RecommenderSerializer(many=True)
+    recommended = RecommenderSerializer(many=True)
 
     class Meta:
         model = Customer
         fields = ('id', 'url', 'user', 'phone_number',
-                  'address', 'payment_types', 'recommends',)
+                  'address', 'payment_types', 'recommended',)
         depth = 1
 
 

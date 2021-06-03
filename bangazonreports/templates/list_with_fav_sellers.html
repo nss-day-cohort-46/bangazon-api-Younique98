@@ -6,15 +6,13 @@
     <title>Bangazon Reports</title>
   </head>
   <body>
-    <h1>Customers with Favorited Sellers</h1>
-
     {% for user in customer_fav_list %}
-    <h2>{{ user.full_name }}</h2>
-    <ol>
+    <h1>Customer: {{ user.full_name }}</h1>
+    <ul>
       {% for seller in user.sellers %}
       <li>Favorite Seller: {{ seller.seller_full_name }}</li>
       {% endfor %}
-    </ol>
+    </ul>
     {% endfor %}
   </body>
 </html>

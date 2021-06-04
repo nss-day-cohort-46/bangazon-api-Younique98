@@ -19,7 +19,7 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ('id', 'name', 'price', 'number_sold', 'description',
                   'quantity', 'created_date', 'location', 'image_path',
-                  'average_rating', 'can_be_rated', )
+                  'average_rating', 'can_be_rated', 'category')
         depth = 1
 
 
@@ -95,10 +95,11 @@ class Products(ViewSet):
         new_product.customer = customer
 
         product_category = ProductCategory.objects.get(
-            pk=request.data["category_id"])
+            pk=request.data["name"])
         new_product.category = product_category
+        image_path = request.data['image_path']
 
-        if "image_path" in request.data:
+        if image_path is not None:
             format, imgstr = request.data["image_path"].split(';base64,')
             ext = format.split('/')[-1]
             data = ContentFile(base64.b64decode(

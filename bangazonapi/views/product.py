@@ -94,13 +94,15 @@ class Products(ViewSet):
         customer = Customer.objects.get(user=request.auth.user)
         new_product.customer = customer
 
-        product_category = ProductCategory.objects.get(pk=request.data["category_id"])
+        product_category = ProductCategory.objects.get(
+            pk=request.data["category_id"])
         new_product.category = product_category
 
         if "image_path" in request.data:
             format, imgstr = request.data["image_path"].split(';base64,')
             ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name=f'{new_product.id}-{request.data["name"]}.{ext}')
+            data = ContentFile(base64.b64decode(
+                imgstr), name=f'{new_product.id}-{request.data["name"]}.{ext}')
 
             new_product.image_path = data
 
@@ -152,7 +154,8 @@ class Products(ViewSet):
         """
         try:
             product = Product.objects.get(pk=pk)
-            serializer = ProductSerializer(product, context={'request': request})
+            serializer = ProductSerializer(
+                product, context={'request': request})
             return Response(serializer.data)
         except Exception as ex:
             return HttpResponseServerError(ex)
@@ -182,7 +185,8 @@ class Products(ViewSet):
         customer = Customer.objects.get(user=request.auth.user)
         product.customer = customer
 
-        product_category = ProductCategory.objects.get(pk=request.data["category_id"])
+        product_category = ProductCategory.objects.get(
+            pk=request.data["category_id"])
         product.category = product_category
         product.save()
 
@@ -242,14 +246,15 @@ class Products(ViewSet):
                 }
             ]
         """
-        products = Product.objects.all()
-
-        # Support filtering by category and/or quantity
+        products = Product.objects.all()  # this is just the model
+# query_params is a dict and we're use .get
+        # Support filtering by category and/or quantity. pass in a key ie category. if no category then it will be equal to none
         category = self.request.query_params.get('category', None)
         quantity = self.request.query_params.get('quantity', None)
         order = self.request.query_params.get('order_by', None)
         direction = self.request.query_params.get('direction', None)
         number_sold = self.request.query_params.get('number_sold', None)
+        location = self.request.query_params.get('location', None)
 
         if order is not None:
             order_filter = order
@@ -263,15 +268,20 @@ class Products(ViewSet):
         if category is not None:
             products = products.filter(category__id=category)
 
+        if location is not None:
+            products = products.filter(location__contains=location)
+
         if quantity is not None:
             products = products.order_by("-created_date")[:int(quantity)]
 
         if number_sold is not None:
             def sold_filter(product):
-                if product.number_sold <= int(number_sold):
+                # TODO maybe a fix to place back the arrow to =>
+                if product.number_sold >= int(number_sold):
                     return True
                 return False
 
+# looping through the products list and then placing each product into a sold filter ie line 278
             products = filter(sold_filter, products)
 
         serializer = ProductSerializer(
@@ -285,7 +295,8 @@ class Products(ViewSet):
         if request.method == "POST":
             rec = Recommendation()
             rec.recommender = Customer.objects.get(user=request.auth.user)
-            rec.customer = Customer.objects.get(user__id=request.data["recipient"])
+            rec.customer = Customer.objects.get(
+                user__id=request.data["recipient"])
             rec.product = Product.objects.get(pk=pk)
 
             rec.save()

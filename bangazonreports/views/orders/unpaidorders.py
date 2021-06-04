@@ -5,15 +5,15 @@ from bangazonapi.models import Customer
 from bangazonreports.views import Connection
 
 
-def favoritedsellersbycustomers_list(request):
-    """Function to build an HTML report of favorited sellers by customers"""
+def ordersbycustomers_list(request):
+    """Function to build an HTML report of unpaid orders by customers"""
     if request.method == 'GET':
         # Connect to project database
         with sqlite3.connect(Connection.db_path) as conn:
             conn.row_factory = sqlite3.Row
             db_cursor = conn.cursor()
 
-            # Query for all customers, with favorited sellers
+            # Query for all customers, with unpaid orders
             db_cursor.execute("""
                 SELECT c.id,
                     c.phone_number,
